@@ -24,4 +24,15 @@
   </div>
   <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
 </a>
+
+<form method="post" action="{% url 'logout' %}" class="border-b border-line p-4">
+  {% csrf_token %}
+  <button type="submit" class="flex w-full items-center justify-between text-left">
+    <span>
+      <span class="block font-display font-semibold text-red-500">Log out</span>
+      <span class="block text-sm text-muted">@{{ user.username }}</span>
+    </span>
+    <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+  </button>
+</form>
 {% endblock %}
