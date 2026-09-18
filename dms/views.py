@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import F, OuterRef, Q, Subquery
-from django.http import Http404, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
@@ -68,6 +70,9 @@ def send_message(request, username):
     content = request.POST.get("content", "").strip()
     if not content or len(content) > 1000:
         return HttpResponseBadRequest("Message must be 1 to 1000 characters.")
+    recent = Message.objects.filter(sender=request.user, created_at__gte=timezone.now() - timedelta(minutes=1))
+    if recent.count() >= 30:
+        return HttpResponse("You're sending too fast. Try again in a minute.", status=429)
     conv = Conversation.between(request.user, other)
     message = Message.objects.create(conversation=conv, sender=request.user, content=content)
     other_field = conv.unread_field(other)

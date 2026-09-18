@@ -52,6 +52,39 @@ class DeleteAccountTests(TestCase):
         self.assertFalse(Post.objects.exists())
 
 
+class PasswordResetTests(TestCase):
+    def test_reset_email_is_sent(self):
+        User.objects.create_user("alice", "alice@example.com", PASSWORD)
+        response = self.client.post(reverse("password_reset"), {"email": "alice@example.com"})
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("/password/reset/", mail.outbox[0].body)
+
+
+class ChangeEmailTests(TestCase):
+    def test_change_email_requires_reverification(self):
+        user = User.objects.create_user("alice", "alice@example.com", PASSWORD, email_verified=True)
+        self.client.force_login(user)
+        response = self.client.post(reverse("change_email"), {"email": "New@Example.com"})
+        self.assertRedirects(response, reverse("settings"))
+        user.refresh_from_db()
+        self.assertEqual(user.email, "new@example.com")
+        self.assertFalse(user.email_verified)
+        self.assertEqual(len(mail.outbox), 1)
+
+
+class SignupRateLimitTests(TestCase):
+    def test_signups_limited_per_ip(self):
+        for i in range(5):
+            User.objects.create_user(f"user{i}", f"u{i}@example.com", PASSWORD, signup_ip="10.0.0.1")
+        data = {"username": "newbie", "email": "newbie@example.com", "password1": PASSWORD, "password2": PASSWORD}
+        response = self.client.post(reverse("signup"), data, REMOTE_ADDR="10.0.0.1")
+        self.assertContains(response, "Too many accounts")
+        self.assertFalse(User.objects.filter(username="newbie").exists())
+        response = self.client.post(reverse("signup"), data, REMOTE_ADDR="10.0.0.2")
+        self.assertRedirects(response, reverse("home"))
+
+
 class LegalPagesTests(TestCase):
     def test_pages_render(self):
         for name in ("terms", "privacy"):

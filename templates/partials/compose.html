@@ -1,5 +1,6 @@
 <form id="compose" hx-post="{% url 'compose' %}" hx-target="#feed" hx-swap="afterbegin"
       x-data="{ text: '' }" @htmx:after-request="if ($event.detail.successful) text = ''"
+      hx-on::response-error="alert($event.detail.xhr.responseText)"
       class="flex gap-3 border-b border-line p-4">
   {% include "partials/avatar.html" with u=user %}
   <div class="min-w-0 flex-1">

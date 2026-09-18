@@ -16,7 +16,11 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     display_name = models.CharField(max_length=50, blank=True)
     bio = models.CharField(max_length=160, blank=True)
+    location = models.CharField(max_length=50, blank=True)
+    website = models.URLField(blank=True)
     email_verified = models.BooleanField(default=False)
+    signup_ip = models.GenericIPAddressField(null=True, blank=True)
+    last_verification_sent_at = models.DateTimeField(null=True, blank=True)
 
     class Theme(models.TextChoices):
         SYSTEM = "system", "System"

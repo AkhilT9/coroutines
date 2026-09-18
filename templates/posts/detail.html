@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load feed_extras %}
 {% block title %}{{ post.author.name }}: "{{ post.content|truncatechars:60 }}" / coroutines{% endblock %}
+{% block og_title %}{{ post.author.name }} (@{{ post.author.username }}) on coroutines{% endblock %}
+{% block og_description %}{{ post.content|truncatechars:200 }}{% endblock %}
 {% block content %}
 <div class="sticky top-0 z-10 flex items-center gap-4 border-b border-line bg-base/80 px-4 py-3 backdrop-blur">
   <a href="javascript:history.back()" class="rounded-full p-1 hover:bg-surface" title="Back">

@@ -1,4 +1,6 @@
 import re
+from collections import Counter
+from datetime import timedelta
 
 from django import template
 from django.db.models import Count
@@ -9,6 +11,7 @@ from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
 from accounts.models import User
+from posts.models import Post
 
 register = template.Library()
 
@@ -50,6 +53,17 @@ def linkify(value, autoescape=True):
     text = MENTION_RE.sub(_mention_link, text)
     text = HASHTAG_RE.sub(_hashtag_link, text)
     return mark_safe(text)
+
+
+@register.inclusion_tag("partials/trending.html")
+def trending_tags():
+    since = timezone.now() - timedelta(hours=24)
+    recent = Post.objects.filter(created_at__gte=since, content__contains="#").values_list("content", flat=True)[:500]
+    counter = Counter()
+    for content in recent:
+        for tag in {t.lower() for t in HASHTAG_RE.findall(content)}:
+            counter[tag] += 1
+    return {"tags": counter.most_common(5)}
 
 
 @register.inclusion_tag("partials/who_to_follow.html", takes_context=True)

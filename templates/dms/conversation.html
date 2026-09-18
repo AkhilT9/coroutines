@@ -21,6 +21,7 @@
 {% include "dms/partials/poller.html" %}
 <form hx-post="{% url 'dm_send' other.username %}" hx-target="#thread" hx-swap="beforeend"
       x-data="{ text: '' }" @htmx:after-request="if ($event.detail.successful) text = ''"
+      hx-on::response-error="alert($event.detail.xhr.responseText)"
       class="sticky bottom-16 flex gap-2 border-t border-line bg-base p-3 md:bottom-0">
   <input type="text" name="content" x-model="text" maxlength="1000" placeholder="Start a new message" autocomplete="off"
          class="min-w-0 flex-1 rounded-full border border-line bg-surface px-4 py-2 text-sm outline-none focus:border-accent">

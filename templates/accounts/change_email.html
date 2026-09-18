@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Change email / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Change email</div>
+<form method="post" class="p-4">
+  {% csrf_token %}
+  <p class="mb-4 text-sm text-muted">Current email: <b class="text-ink">{{ user.email }}</b>. You'll need to confirm the new address before you can post again.</p>
+  {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
+  <div class="flex justify-end gap-3">
+    <a href="{% url 'settings' %}" class="rounded-full px-4 py-2 text-sm font-bold text-muted hover:bg-surface">Cancel</a>
+    <button type="submit" class="rounded-full bg-ink px-4 py-2 text-sm font-bold text-base hover:opacity-90">Update email</button>
+  </div>
+</form>
+{% endblock %}

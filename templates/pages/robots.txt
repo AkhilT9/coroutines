@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /messages/
+Disallow: /settings/
+Disallow: /bookmarks/

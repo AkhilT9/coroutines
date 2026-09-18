@@ -144,7 +144,7 @@ class PostFlowTests(TestCase):
         response = self.client.get(reverse("tag", args=["django"]))
         self.assertContains(response, "love")
         self.assertNotContains(response, "nothing here")
-        self.assertNotContains(response, "djangonaut")
+        self.assertNotContains(response, "is different")
 
     def test_search_finds_people_and_posts(self):
         Post.objects.create(author=self.bob, content="the coroutines launch")
@@ -186,6 +186,18 @@ class PostFlowTests(TestCase):
         self.assertContains(self.client.get(post.get_absolute_url()), "Edited")
         other = Post.objects.create(author=self.bob, content="not mine")
         self.assertEqual(self.client.get(reverse("edit_post", args=[other.pk])).status_code, 404)
+
+    def test_posting_is_rate_limited(self):
+        for i in range(10):
+            Post.objects.create(author=self.alice, content=f"post {i}")
+        self.assertEqual(self.client.post(reverse("compose"), {"content": "one more"}).status_code, 429)
+
+    def test_trending_counts_recent_tags(self):
+        Post.objects.create(author=self.bob, content="#django rocks")
+        Post.objects.create(author=self.alice, content="more #Django here")
+        response = self.client.get(reverse("explore"))
+        self.assertContains(response, "Trending today")
+        self.assertContains(response, "2 posts")
 
     def test_detail_redirects_repost_to_original(self):
         post = Post.objects.create(author=self.bob, content="x")

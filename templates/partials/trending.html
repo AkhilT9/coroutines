@@ -1,0 +1,11 @@
+{% if tags %}
+<div class="rounded-2xl border border-line pb-1">
+  <h3 class="px-4 pb-1 pt-3 font-display text-lg font-bold">Trending today</h3>
+  {% for tag, count in tags %}
+  <a href="{% url 'tag' tag %}" class="block px-4 py-2 hover:bg-dim">
+    <div class="font-bold">#{{ tag }}</div>
+    <div class="text-xs text-muted">{{ count }} post{{ count|pluralize }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}

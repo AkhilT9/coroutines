@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 from urllib.parse import urlparse
 
 from django.contrib import messages
@@ -18,6 +19,13 @@ from .forms import PostForm
 from .models import Bookmark, Like, Post
 
 TAG_RE = re.compile(r"^[A-Za-z0-9_]{1,50}$")
+POSTS_PER_MINUTE = 10
+TOO_FAST = "You're posting too fast. Try again in a minute."
+
+
+def _posting_too_fast(user):
+    recent = Post.objects.filter(author=user, created_at__gte=timezone.now() - timedelta(minutes=1))
+    return recent.count() >= POSTS_PER_MINUTE
 
 
 def _original(post):
@@ -156,6 +164,8 @@ def feed_updates(request):
 def compose(request):
     if not request.user.email_verified:
         return HttpResponseForbidden("Confirm your email to post.")
+    if _posting_too_fast(request.user):
+        return HttpResponse(TOO_FAST, status=429)
     form = PostForm(request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest("Post must be 1 to 280 characters.")
@@ -208,6 +218,9 @@ def reply(request, pk):
     if not request.user.email_verified:
         return HttpResponseForbidden("Confirm your email to reply.")
     parent = _original(get_object_or_404(Post, pk=pk))
+    if _posting_too_fast(request.user):
+        messages.error(request, TOO_FAST)
+        return redirect(parent.get_absolute_url())
     form = PostForm(request.POST)
     if form.is_valid():
         Post.objects.create(author=request.user, parent=parent, content=form.cleaned_data["content"])

@@ -19,6 +19,13 @@
       <svg class="h-14 w-14" viewBox="0 0 100 100" fill="none" stroke-width="10" stroke-linecap="round" aria-hidden="true"><path class="stroke-sky-500" d="M 41.2 82.8 A 34 34 0 0 1 41.2 17.2"/><path class="stroke-amber-400" d="M 58.8 17.2 A 34 34 0 0 1 58.8 82.8"/></svg>
       <span class="font-display text-3xl font-bold tracking-tighter">c<span class="text-sky-500">o</span>r<span class="text-amber-400">o</span>utines</span>
     </a>
+    {% if messages %}
+    <div class="mb-4 space-y-2">
+      {% for message in messages %}
+      <div class="rounded-md px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-500/10 text-danger{% else %}bg-sky-500/10 text-info{% endif %}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
     {% block content %}{% endblock %}
     <p class="mt-8 text-center text-xs text-muted"><a href="{% url 'terms' %}" class="hover:underline">Terms</a> · <a href="{% url 'privacy' %}" class="hover:underline">Privacy</a></p>
   </div>

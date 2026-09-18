@@ -9,5 +9,6 @@
   {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
   <button type="submit" class="mt-2 w-full rounded-full bg-ink py-2.5 font-bold text-base hover:opacity-90">Log in</button>
 </form>
+<p class="mt-4 text-center text-sm"><a href="{% url 'password_reset' %}" class="text-accent hover:underline">Forgot your password?</a></p>
 <p class="mt-6 text-center text-sm text-muted">New here? <a href="{% url 'signup' %}" class="text-accent hover:underline">Create an account</a></p>
 {% endblock %}

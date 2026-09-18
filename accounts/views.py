@@ -1,3 +1,4 @@
+from datetime import timedelta
 from urllib.parse import urlparse
 
 from django.contrib import messages
@@ -7,15 +8,28 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from posts.feed import base_queryset, is_htmx, paginate_feed
 
 from .emails import send_verification_email
-from .forms import LoginForm, ProfileForm, SignupForm
+from .forms import EmailChangeForm, LoginForm, ProfileForm, SignupForm, StyledPasswordChangeForm
 from .models import Block, Follow, User, blocked_user_ids
 from .tokens import read_token
+
+SIGNUPS_PER_IP_PER_HOUR = 5
+
+
+def client_ip(request):
+    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    return forwarded.split(",")[0].strip() or request.META.get("REMOTE_ADDR")
+
+
+def _record_verification_sent(user):
+    user.last_verification_sent_at = timezone.now()
+    user.save(update_fields=["last_verification_sent_at"])
 
 
 def signup(request):
@@ -23,9 +37,17 @@ def signup(request):
         return redirect("home")
     form = SignupForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = form.save()
+        ip = client_ip(request)
+        recent = User.objects.filter(signup_ip=ip, date_joined__gte=timezone.now() - timedelta(hours=1))
+        if ip and recent.count() >= SIGNUPS_PER_IP_PER_HOUR:
+            messages.error(request, "Too many accounts were created from this network recently. Please try again later.")
+            return render(request, "accounts/signup.html", {"form": form})
+        user = form.save(commit=False)
+        user.signup_ip = ip
+        user.save()
         login(request, user)
         if send_verification_email(request, user):
+            _record_verification_sent(user)
             messages.success(request, f"Welcome, @{user.username}! We sent a confirmation link to {user.email}.")
         else:
             messages.error(request, "We couldn't send the confirmation email. Try 'Resend' in a moment.")
@@ -55,12 +77,42 @@ def verify_email(request, token):
 @login_required
 @require_POST
 def resend_verification(request):
-    if not request.user.email_verified:
-        if send_verification_email(request, request.user):
-            messages.success(request, f"Confirmation link sent to {request.user.email}.")
+    user = request.user
+    if not user.email_verified:
+        last = user.last_verification_sent_at
+        if last and timezone.now() - last < timedelta(seconds=60):
+            messages.error(request, "Please wait a minute before requesting another email.")
+        elif send_verification_email(request, user):
+            _record_verification_sent(user)
+            messages.success(request, f"Confirmation link sent to {user.email}.")
         else:
             messages.error(request, "Email sending failed. Please try again later.")
     return redirect("home")
+
+
+@login_required
+def change_email(request):
+    form = EmailChangeForm(request.user, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = request.user
+        user.email = form.cleaned_data["email"]
+        user.email_verified = False
+        user.save(update_fields=["email", "email_verified"])
+        if send_verification_email(request, user):
+            _record_verification_sent(user)
+        messages.success(request, f"Email updated. We sent a confirmation link to {user.email}.")
+        return redirect("settings")
+    return render(request, "accounts/change_email.html", {"form": form})
+
+
+class PasswordChangeView(auth_views.PasswordChangeView):
+    template_name = "accounts/password_change.html"
+    form_class = StyledPasswordChangeForm
+    success_url = reverse_lazy("settings")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Password changed.")
+        return super().form_valid(form)
 
 
 def profile(request, username):
@@ -183,7 +235,9 @@ def delete_account(request):
 @login_required
 def settings_home(request):
     rows = [
-        (reverse("edit_profile"), "Edit profile", "Name, bio"),
+        (reverse("edit_profile"), "Edit profile", "Name, bio, location, website"),
+        (reverse("change_email"), "Change email", request.user.email),
+        (reverse("password_change"), "Change password", "Update your password"),
         (reverse("bookmarks"), "Bookmarks", "Posts you saved"),
         (reverse("blocked_list"), "Blocked accounts", "People you've blocked"),
         (reverse("terms"), "Terms of Service", "The rules for using coroutines"),

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ profile_user.name }} (@{{ profile_user.username }}) / coroutines{% endblock %}
+{% block og_title %}{{ profile_user.name }} (@{{ profile_user.username }}) on coroutines{% endblock %}
+{% block og_description %}{{ profile_user.bio|default:"Follow to see their posts." }}{% endblock %}
 {% block content %}
 <div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-2 backdrop-blur">
   <div class="text-xl font-bold">{{ profile_user.name }}</div>
@@ -46,7 +48,11 @@
     <div class="text-muted">@{{ profile_user.username }}</div>
   </div>
   {% if profile_user.bio %}<p class="mt-3 whitespace-pre-wrap break-words">{{ profile_user.bio }}</p>{% endif %}
-  <div class="mt-3 text-sm text-muted">Joined {{ profile_user.date_joined|date:"F Y" }}</div>
+  <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+    {% if profile_user.location %}<span>📍 {{ profile_user.location }}</span>{% endif %}
+    {% if profile_user.website %}<a href="{{ profile_user.website }}" rel="nofollow noopener" target="_blank" class="text-accent hover:underline">{{ profile_user.website|cut:"https://"|cut:"http://"|truncatechars:40 }}</a>{% endif %}
+    <span>Joined {{ profile_user.date_joined|date:"F Y" }}</span>
+  </div>
   <div class="mt-3 flex gap-4 text-sm">
     <a href="{% url 'following' profile_user.username %}" class="hover:underline"><span class="font-bold">{{ following_count }}</span> <span class="text-muted">Following</span></a>
     <a href="{% url 'followers' profile_user.username %}" class="hover:underline"><span id="followers-count" class="font-bold">{{ followers_count }}</span> <span class="text-muted">Followers</span></a>

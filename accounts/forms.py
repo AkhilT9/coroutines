@@ -1,5 +1,11 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    PasswordResetForm,
+    SetPasswordForm,
+    UserCreationForm,
+)
 
 from .models import User
 
@@ -52,9 +58,48 @@ class LoginForm(AuthenticationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ("display_name", "bio")
+        fields = ("display_name", "bio", "location", "website")
         widgets = {"bio": forms.Textarea(attrs={"rows": 3})}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _style(self)
+
+
+class StyledPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _style(self)
+
+
+class StyledSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _style(self)
+        self.fields["new_password1"].help_text = "At least 8 characters."
+        self.fields["new_password2"].help_text = ""
+
+
+class StyledPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _style(self)
+        self.fields["new_password1"].help_text = "At least 8 characters."
+        self.fields["new_password2"].help_text = ""
+
+
+class EmailChangeForm(forms.Form):
+    email = forms.EmailField(label="New email")
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        _style(self)
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if email == self.user.email:
+            raise forms.ValidationError("That's already your email.")
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("An account with that email already exists.")
+        return email
