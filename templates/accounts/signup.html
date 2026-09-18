@@ -1,0 +1,12 @@
+{% extends "base_auth.html" %}
+{% block title %}Sign up / coroutines{% endblock %}
+{% block content %}
+<h1 class="mb-6 text-2xl font-bold">Create your account</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
+  <button type="submit" class="mt-2 w-full rounded-full bg-ink py-2.5 font-bold text-base hover:opacity-90">Sign up</button>
+</form>
+<p class="mt-6 text-center text-sm text-muted">Have an account? <a href="{% url 'login' %}" class="text-accent hover:underline">Log in</a></p>
+{% endblock %}

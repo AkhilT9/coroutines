@@ -1,0 +1,11 @@
+{% if user.is_authenticated %}
+  {% if user != profile_user %}
+  <button hx-post="{% url 'follow_toggle' profile_user.username %}" hx-swap="outerHTML"
+          class="group rounded-full px-4 py-1.5 text-sm font-bold transition {% if is_following %}border border-line hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-500{% else %}bg-ink text-base hover:opacity-90{% endif %}">
+    {% if is_following %}<span class="group-hover:hidden">Following</span><span class="hidden group-hover:inline">Unfollow</span>{% else %}Follow{% endif %}
+  </button>
+  {% endif %}
+{% else %}
+  <a href="{% url 'login' %}?next={{ request.path }}" class="rounded-full bg-ink px-4 py-1.5 text-sm font-bold text-base hover:opacity-90">Follow</a>
+{% endif %}
+{% if oob_followers_count is not None %}<span id="followers-count" class="font-bold" hx-swap-oob="true">{{ oob_followers_count }}</span>{% endif %}

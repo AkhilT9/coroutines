@@ -1,0 +1,91 @@
+:root {
+  --c-base: #ffffff;
+  --c-dim: #f7f7f8;
+  --c-surface: #f0f0f1;
+  --c-fill: #e3e4e6;
+  --c-line: #e3e4e6;
+  --c-ink: #0f1419;
+  --c-muted: #6b7280;
+  --c-accent: #0284c7;
+  --c-accent-hover: #0369a1;
+  --c-danger: #b91c1c;
+  --c-info: #0369a1;
+  --c-warn: #92400e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --c-base: #000000;
+    --c-dim: #0a0a0a;
+    --c-surface: #171717;
+    --c-fill: #262626;
+    --c-line: #262626;
+    --c-ink: #f5f5f5;
+    --c-muted: #737373;
+    --c-accent: #0ea5e9;
+    --c-accent-hover: #0284c7;
+    --c-danger: #f87171;
+    --c-info: #7dd3fc;
+    --c-warn: #fde047;
+  }
+}
+
+:root[data-theme="dark"] {
+  --c-base: #000000;
+  --c-dim: #0a0a0a;
+  --c-surface: #171717;
+  --c-fill: #262626;
+  --c-line: #262626;
+  --c-ink: #f5f5f5;
+  --c-muted: #737373;
+  --c-accent: #0ea5e9;
+  --c-accent-hover: #0284c7;
+  --c-danger: #f87171;
+  --c-info: #7dd3fc;
+  --c-warn: #fde047;
+}
+
+body {
+  background: var(--c-base);
+  color: var(--c-ink);
+}
+
+.bg-base { background-color: var(--c-base); }
+.bg-dim { background-color: var(--c-dim); }
+.bg-surface { background-color: var(--c-surface); }
+.bg-fill { background-color: var(--c-fill); }
+.bg-ink { background-color: var(--c-ink); }
+.bg-accent { background-color: var(--c-accent); }
+.border-line { border-color: var(--c-line); }
+.border-accent { border-color: var(--c-accent); }
+.text-ink { color: var(--c-ink); }
+.text-muted { color: var(--c-muted); }
+.text-accent { color: var(--c-accent); }
+.text-base { color: var(--c-base); }
+.text-danger { color: var(--c-danger); }
+.text-info { color: var(--c-info); }
+.text-warn { color: var(--c-warn); }
+.bg-base\/80 { background-color: color-mix(in srgb, var(--c-base) 80%, transparent); }
+
+.hover\:bg-surface:hover { background-color: var(--c-surface); }
+.hover\:bg-dim:hover { background-color: var(--c-dim); }
+.hover\:bg-fill:hover { background-color: var(--c-fill); }
+.hover\:bg-accent-hover:hover { background-color: var(--c-accent-hover); }
+.hover\:text-ink:hover { color: var(--c-ink); }
+.focus\:border-accent:focus { border-color: var(--c-accent); }
+
+@media (min-width: 1280px) {
+  .xl\:hover\:bg-surface:hover { background-color: var(--c-surface); }
+}
+
+#feed:has(article) #feed-empty {
+  display: none;
+}
+
+.errorlist {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  color: #f87171;
+  font-size: 0.875rem;
+}

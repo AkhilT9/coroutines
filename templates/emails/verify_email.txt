@@ -1,0 +1,7 @@
+Hi @{{ user.username }},
+
+Confirm your email address for coroutines by opening this link:
+
+{{ url }}
+
+The link expires in 3 days. If you didn't sign up, you can ignore this email.

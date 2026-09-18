@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Settings / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Settings</div>
+
+<div class="border-b border-line p-4">
+  <h3 class="mb-1 font-display font-semibold">Appearance</h3>
+  <p class="mb-4 text-sm text-muted">Choose how coroutines looks on this account. "System" follows your device.</p>
+  <form method="post" action="{% url 'update_theme' %}" class="inline-flex gap-1 rounded-full border border-line p-1">
+    {% csrf_token %}
+    {% for value, label in theme_choices %}
+    <button type="submit" name="theme" value="{{ value }}"
+            class="rounded-full px-4 py-1.5 text-sm font-bold transition {% if theme == value %}bg-ink text-base{% else %}text-muted hover:text-ink{% endif %}">
+      {{ label }}
+    </button>
+    {% endfor %}
+  </form>
+</div>
+
+<a href="{% url 'edit_profile' %}" class="flex items-center justify-between border-b border-line p-4 hover:bg-dim">
+  <div>
+    <h3 class="font-display font-semibold">Edit profile</h3>
+    <p class="text-sm text-muted">Name, bio</p>
+  </div>
+  <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+</a>
+{% endblock %}

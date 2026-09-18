@@ -1,0 +1,14 @@
+<form id="compose" hx-post="{% url 'compose' %}" hx-target="#feed" hx-swap="afterbegin"
+      x-data="{ text: '' }" @htmx:after-request="if ($event.detail.successful) text = ''"
+      class="flex gap-3 border-b border-line p-4">
+  {% include "partials/avatar.html" with u=user %}
+  <div class="min-w-0 flex-1">
+    <textarea name="content" x-model="text" maxlength="280" rows="2" placeholder="What's happening?"
+              class="w-full resize-none bg-transparent text-xl outline-none placeholder:text-neutral-500"></textarea>
+    <div class="mt-2 flex items-center justify-end gap-3 border-t border-line pt-3">
+      <span class="text-sm" :class="text.length > 260 ? 'text-yellow-500' : 'text-muted'" x-text="280 - text.length">280</span>
+      <button type="submit" :disabled="!text.trim()"
+              class="rounded-full bg-accent px-4 py-1.5 font-bold text-white hover:bg-accent-hover disabled:opacity-50">Post</button>
+    </div>
+  </div>
+</form>

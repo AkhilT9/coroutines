@@ -1,0 +1,25 @@
+{% load static %}
+<!doctype html>
+<html lang="en"{% if theme == 'dark' %} data-theme="dark"{% elif theme == 'light' %} data-theme="light"{% endif %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}coroutines{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/mark.svg' %}">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@700&display=swap">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme { --font-display: "Gabarito", sans-serif; }
+  </style>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="flex min-h-screen items-center justify-center bg-base p-4 text-ink antialiased">
+  <div class="w-full max-w-sm">
+    <a href="{% url 'explore' %}" title="coroutines" class="mb-8 flex flex-col items-center gap-3">
+      <svg class="h-14 w-14" viewBox="0 0 100 100" fill="none" stroke-width="10" stroke-linecap="round" aria-hidden="true"><path class="stroke-sky-500" d="M 41.2 82.8 A 34 34 0 0 1 41.2 17.2"/><path class="stroke-amber-400" d="M 58.8 17.2 A 34 34 0 0 1 58.8 82.8"/></svg>
+      <span class="font-display text-3xl font-bold tracking-tighter">c<span class="text-sky-500">o</span>r<span class="text-amber-400">o</span>utines</span>
+    </a>
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

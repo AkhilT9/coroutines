@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Explore / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Explore</div>
+<div id="feed">
+  {% include "partials/feed_page.html" with empty_message="Nothing here yet. Be the first to post!" %}
+</div>
+{% endblock %}

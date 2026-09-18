@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Edit profile / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Edit profile</div>
+<form method="post" class="p-4">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
+  <div class="flex justify-end gap-3">
+    <a href="{{ user.get_absolute_url }}" class="rounded-full px-4 py-2 text-sm font-bold text-muted hover:bg-surface">Cancel</a>
+    <button type="submit" class="rounded-full bg-ink px-4 py-2 text-sm font-bold text-base hover:opacity-90">Save</button>
+  </div>
+</form>
+{% endblock %}

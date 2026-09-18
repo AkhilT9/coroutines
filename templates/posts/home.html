@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Home / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Home</div>
+{% if user.email_verified %}{% include "partials/compose.html" %}{% endif %}
+<div id="feed">
+  {% include "partials/feed_page.html" with empty_message="Your feed is empty. Follow some people from Explore, or post something yourself." %}
+</div>
+{% endblock %}
