@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Bookmarks / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-2 backdrop-blur">
+  <div class="text-xl font-bold">Bookmarks</div>
+  <div class="text-xs text-muted">Only you can see these</div>
+</div>
+<div id="feed">
+  {% include "partials/feed_page.html" with empty_message="Nothing saved yet. Tap the bookmark icon on any post to keep it here." %}
+</div>
+{% endblock %}

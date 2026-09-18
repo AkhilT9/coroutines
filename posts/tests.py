@@ -1,9 +1,27 @@
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from accounts.models import Follow, User
 
-from .models import Like, Post
+from .models import Bookmark, Like, Post
+from .templatetags.feed_extras import linkify
+
+
+class LinkifyTests(SimpleTestCase):
+    def test_mentions_and_hashtags_become_links(self):
+        html = linkify("hi @Bob check #django")
+        self.assertIn('href="/@bob/"', html)
+        self.assertIn('href="/tag/django/"', html)
+
+    def test_escapes_html_and_keeps_entities_intact(self):
+        html = linkify("<b>it's</b> #x")
+        self.assertIn("&lt;b&gt;", html)
+        self.assertIn("&#x27;", html)
+        self.assertNotIn("/tag/x27/", html)
+        self.assertIn('href="/tag/x/"', html)
+
+    def test_email_is_not_a_mention(self):
+        self.assertNotIn("href", linkify("mail me at bob@example.com"))
 
 PASSWORD = "strong-pass-123"
 
@@ -118,6 +136,45 @@ class PostFlowTests(TestCase):
     def test_feed_updates_home_requires_login(self):
         self.client.logout()
         self.assertEqual(self.client.get(reverse("feed_updates"), {"scope": "home"}).status_code, 404)
+
+    def test_tag_page_lists_matching_posts_only(self):
+        Post.objects.create(author=self.bob, content="love #django so much")
+        Post.objects.create(author=self.bob, content="nothing here")
+        Post.objects.create(author=self.bob, content="#djangonaut is different")
+        response = self.client.get(reverse("tag", args=["django"]))
+        self.assertContains(response, "love")
+        self.assertNotContains(response, "nothing here")
+        self.assertNotContains(response, "djangonaut")
+
+    def test_search_finds_people_and_posts(self):
+        Post.objects.create(author=self.bob, content="the coroutines launch")
+        self.assertContains(self.client.get(reverse("search"), {"q": "coroutines"}), "the coroutines launch")
+        self.assertContains(self.client.get(reverse("search"), {"q": "bo"}), "@bob")
+
+    def test_search_hashtag_redirects_to_tag(self):
+        response = self.client.get(reverse("search"), {"q": "#django"})
+        self.assertRedirects(response, reverse("tag", args=["django"]), fetch_redirect_response=False)
+
+    def test_bookmark_toggle_and_page(self):
+        post = Post.objects.create(author=self.bob, content="save me")
+        url = reverse("bookmark_toggle", args=[post.pk])
+        self.client.post(url)
+        self.assertTrue(Bookmark.objects.filter(user=self.alice, post=post).exists())
+        self.assertContains(self.client.get(reverse("bookmarks")), "save me")
+        self.client.post(url)
+        self.assertFalse(Bookmark.objects.exists())
+
+    def test_bookmarks_requires_login(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse("bookmarks")).status_code, 302)
+
+    def test_who_to_follow_excludes_self_and_followed(self):
+        make_user("carol")
+        Follow.objects.create(follower=self.alice, following=self.bob)
+        response = self.client.get(reverse("explore"))
+        self.assertContains(response, "Who to follow")
+        self.assertContains(response, "@carol")
+        self.assertNotContains(response, "@bob")
 
     def test_detail_redirects_repost_to_original(self):
         post = Post.objects.create(author=self.bob, content="x")

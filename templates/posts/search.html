@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{% if q %}{{ q }} - Search{% else %}Search{% endif %} / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 backdrop-blur">
+  {% include "partials/search_form.html" %}
+</div>
+{% if q %}
+  {% if people %}
+  <div class="border-b border-line">
+    <h3 class="px-4 pb-1 pt-3 font-display text-lg font-bold">People</h3>
+    {% for u in people %}
+    <div class="flex items-center gap-3 px-4 py-2 hover:bg-dim">
+      {% include "partials/avatar.html" with u=u %}
+      <div class="min-w-0 flex-1">
+        <a href="{{ u.get_absolute_url }}" class="block truncate text-sm font-bold hover:underline">{{ u.name }}</a>
+        <div class="truncate text-sm text-muted">@{{ u.username }}</div>
+      </div>
+      {% include "partials/follow_button.html" with profile_user=u is_following=u.is_followed %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <h3 class="border-b border-line px-4 py-3 font-display text-lg font-bold">Posts</h3>
+  <div id="feed">
+    {% include "partials/feed_page.html" with empty_message="No posts match that search." %}
+  </div>
+{% else %}
+  <p class="p-8 text-center text-muted">Search for people by name or handle, or posts by what they say. Try #hashtag to browse a topic.</p>
+{% endif %}
+{% endblock %}

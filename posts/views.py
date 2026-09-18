@@ -1,18 +1,22 @@
+import re
 from urllib.parse import urlparse
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import connection
 from django.db.models import F, Q
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from accounts.models import Follow
+from accounts.models import Follow, User
 
 from .feed import attach_viewer_state, base_queryset, is_htmx, paginate_feed
 from .forms import PostForm
-from .models import Like, Post
+from .models import Bookmark, Like, Post
+
+TAG_RE = re.compile(r"^[A-Za-z0-9_]{1,50}$")
 
 
 def _original(post):
@@ -46,6 +50,70 @@ def explore(request):
     if is_htmx(request):
         return render(request, "partials/feed_page.html", page)
     return render(request, "posts/explore.html", {**page, "since": _latest_id(page["items"])})
+
+
+def tag(request, name):
+    if not TAG_RE.match(name):
+        raise Http404
+    pattern = rf"(^|[^\w])#{re.escape(name)}($|[^\w])"
+    queryset = base_queryset().filter(repost_of__isnull=True, content__iregex=pattern)
+    page = paginate_feed(request, queryset)
+    if is_htmx(request):
+        return render(request, "partials/feed_page.html", page)
+    return render(request, "posts/tag.html", {**page, "name": name})
+
+
+def search(request):
+    q = request.GET.get("q", "").strip()[:100]
+    if q.startswith("#") and TAG_RE.match(q[1:]):
+        return redirect("tag", name=q[1:])
+    people = []
+    page = {"items": [], "next_url": None}
+    if q:
+        handle = q.lstrip("@")
+        people = list(
+            User.objects.filter(Q(username__icontains=handle) | Q(display_name__icontains=handle))
+            .order_by("username")[:10]
+        )
+        my_follows = set()
+        if request.user.is_authenticated:
+            my_follows = set(
+                Follow.objects.filter(follower=request.user, following__in=people).values_list("following_id", flat=True)
+            )
+        for person in people:
+            person.is_followed = person.id in my_follows
+        posts = base_queryset().filter(repost_of__isnull=True)
+        if connection.vendor == "postgresql":
+            from django.contrib.postgres.search import SearchQuery, SearchVector
+
+            posts = posts.annotate(search=SearchVector("content", config="english")).filter(
+                search=SearchQuery(q, config="english", search_type="websearch")
+            )
+        else:
+            posts = posts.filter(content__icontains=q)
+        page = paginate_feed(request, posts)
+    if is_htmx(request):
+        return render(request, "partials/feed_page.html", page)
+    return render(request, "posts/search.html", {**page, "q": q, "people": people})
+
+
+@login_required
+def bookmarks(request):
+    page = paginate_feed(request, base_queryset().filter(bookmarks__user=request.user))
+    if is_htmx(request):
+        return render(request, "partials/feed_page.html", page)
+    return render(request, "posts/bookmarks.html", page)
+
+
+@login_required
+@require_POST
+def bookmark_toggle(request, pk):
+    post = _original(get_object_or_404(Post, pk=pk))
+    bookmark, created = Bookmark.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        bookmark.delete()
+    post.viewer_bookmarked = created
+    return render(request, "partials/bookmark_button.html", {"post": post})
 
 
 @require_GET

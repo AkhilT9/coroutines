@@ -1,4 +1,4 @@
-from .models import Like, Post
+from .models import Bookmark, Like, Post
 
 PAGE_SIZE = 20
 
@@ -18,16 +18,18 @@ def base_queryset():
 
 def attach_viewer_state(items, user):
     targets = [item.repost_of or item for item in items]
-    liked = reposted = set()
+    liked = reposted = bookmarked = set()
     if user.is_authenticated and targets:
         ids = {t.id for t in targets}
         liked = set(Like.objects.filter(user=user, post_id__in=ids).values_list("post_id", flat=True))
         reposted = set(
             Post.objects.filter(author=user, repost_of_id__in=ids).values_list("repost_of_id", flat=True)
         )
+        bookmarked = set(Bookmark.objects.filter(user=user, post_id__in=ids).values_list("post_id", flat=True))
     for target in targets:
         target.viewer_liked = target.id in liked
         target.viewer_reposted = target.id in reposted
+        target.viewer_bookmarked = target.id in bookmarked
 
 
 def paginate_feed(request, queryset):

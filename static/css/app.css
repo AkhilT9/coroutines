@@ -72,6 +72,7 @@ body {
 .hover\:bg-fill:hover { background-color: var(--c-fill); }
 .hover\:bg-accent-hover:hover { background-color: var(--c-accent-hover); }
 .hover\:text-ink:hover { color: var(--c-ink); }
+.hover\:text-accent:hover { color: var(--c-accent); }
 .focus\:border-accent:focus { border-color: var(--c-accent); }
 
 @media (min-width: 1280px) {
