@@ -27,9 +27,11 @@ Run tests: `python manage.py test`
    starts with `postgresql://postgres.xxxx:`), and put your DB password in it.
 3. Render: *New → Blueprint*, pick the repo. `render.yaml` creates the web service. Fill in:
    - `DATABASE_URL` — the Supabase pooler URL from step 2
-   - `BREVO_API_KEY` — from a free Brevo account (Render's free plan blocks SMTP, so mail
-     goes through Brevo's HTTPS API). Verify your sender address under *Senders* first.
-   - `DEFAULT_FROM_EMAIL` — e.g. `coroutines <yourapp@gmail.com>` (must match the verified Brevo sender)
+   - `APPS_SCRIPT_URL` + `APPS_SCRIPT_SECRET` — Render's free plan blocks SMTP, so mail is sent
+     by a Google Apps Script web app in your Gmail account. Deploy `scripts/apps_script_mailer.gs`
+     (Execute as: Me, access: Anyone) and paste its `/exec` URL and the secret you set in it.
+     (Alternative: `BREVO_API_KEY` from a Brevo account with a verified sender.)
+   - `DEFAULT_FROM_EMAIL` — e.g. `coroutines <yourapp@gmail.com>`
 4. After the first deploy, open the Render *Shell* tab and run `python manage.py createsuperuser`
    so you can log in to `/admin/` for moderation.
 

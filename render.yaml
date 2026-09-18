@@ -17,7 +17,9 @@ services:
         generateValue: true
       - key: DATABASE_URL
         sync: false
-      - key: BREVO_API_KEY
+      - key: APPS_SCRIPT_URL
+        sync: false
+      - key: APPS_SCRIPT_SECRET
         sync: false
       - key: DEFAULT_FROM_EMAIL
         sync: false

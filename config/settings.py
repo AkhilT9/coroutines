@@ -104,9 +104,13 @@ if "test" in sys.argv:
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
+APPS_SCRIPT_URL = os.environ.get("APPS_SCRIPT_URL", "")
+APPS_SCRIPT_SECRET = os.environ.get("APPS_SCRIPT_SECRET", "")
 if BREVO_API_KEY:
-    # Render's free tier blocks SMTP ports, so production sends over Brevo's HTTPS API.
+    # Render's free tier blocks SMTP ports, so production sends over an HTTPS API.
     EMAIL_BACKEND = "config.brevo.BrevoEmailBackend"
+elif APPS_SCRIPT_URL:
+    EMAIL_BACKEND = "config.gscript.AppsScriptEmailBackend"
 elif os.environ.get("EMAIL_HOST"):
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = os.environ["EMAIL_HOST"]
