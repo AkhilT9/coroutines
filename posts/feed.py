@@ -1,6 +1,15 @@
+from accounts.models import blocked_user_ids
+
 from .models import Bookmark, Like, Post
 
 PAGE_SIZE = 20
+
+
+def exclude_blocked(queryset, user):
+    ids = blocked_user_ids(user)
+    if not ids:
+        return queryset
+    return queryset.exclude(author_id__in=ids).exclude(repost_of__author_id__in=ids)
 
 
 def is_htmx(request):

@@ -57,3 +57,24 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower} -> {self.following}"
+
+
+class Block(models.Model):
+    blocker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocks_made")
+    blocked = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blocks_received")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["blocker", "blocked"], name="unique_block"),
+            models.CheckConstraint(condition=~Q(blocker=F("blocked")), name="no_self_block"),
+        ]
+
+
+def blocked_user_ids(user):
+    """Ids of everyone the user has blocked or been blocked by."""
+    if not user.is_authenticated:
+        return set()
+    made = Block.objects.filter(blocker=user).values_list("blocked_id", flat=True)
+    received = Block.objects.filter(blocked=user).values_list("blocker_id", flat=True)
+    return set(made) | set(received)

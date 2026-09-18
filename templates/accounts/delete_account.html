@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Delete account / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Delete account</div>
+<div class="p-4">
+  <p class="text-sm text-muted">This permanently deletes <b class="text-ink">@{{ user.username }}</b> along with every post, reply, like, bookmark, follow and message. There is no undo.</p>
+  <form method="post" class="mt-5">
+    {% csrf_token %}
+    <label class="mb-1 block text-sm text-muted" for="password">Confirm your password</label>
+    <input id="password" type="password" name="password" required autocomplete="current-password"
+           class="w-full rounded-md border border-line bg-base px-3 py-2 text-ink outline-none focus:border-accent">
+    <div class="mt-4 flex justify-end gap-3">
+      <a href="{% url 'settings' %}" class="rounded-full px-4 py-2 text-sm font-bold text-muted hover:bg-surface">Cancel</a>
+      <button type="submit" class="rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600">Delete my account</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Privacy Policy</div>
+<div class="space-y-5 p-4 text-[15px] leading-relaxed">
+  <p class="text-sm text-muted">Effective 19 September 2026</p>
+  <p>This explains what coroutines collects about you, why, and what you can do about it. Short version: we collect what's needed to run a social network, we don't sell it, and you can delete everything yourself.</p>
+
+  <h3 class="font-display text-lg font-bold">What we collect</h3>
+  <p><b>Account details:</b> your email address, handle, display name, bio and a hashed version of your password (we never store the password itself).</p>
+  <p><b>Things you create:</b> posts, replies, reposts, likes, bookmarks, who you follow, who you block, and direct messages.</p>
+  <p><b>Technical data:</b> our hosting provider keeps standard server logs (IP address, browser type, pages requested) for a short period to keep the service running and secure.</p>
+  <p><b>Preferences:</b> a cookie remembering your light/dark theme choice.</p>
+
+  <h3 class="font-display text-lg font-bold">How we use it</h3>
+  <p>To run the service, show your content to other people, send you account emails such as the confirmation link when you sign up, keep the site safe from abuse, and respond when you contact us. We don't show ads and we don't sell or rent your data.</p>
+
+  <h3 class="font-display text-lg font-bold">Who can see what</h3>
+  <p>Your profile, posts, replies, reposts and follow lists are public. Likes are shown as counts. Bookmarks are private to you. Direct messages are visible only to the two people in the conversation; the site operator can access them only to investigate abuse reports or when required by law.</p>
+
+  <h3 class="font-display text-lg font-bold">Services we rely on</h3>
+  <p>Your data is processed by <b>Render</b> (hosting) and <b>Supabase</b> (database), both in Singapore, and account emails are sent through <b>Google</b>. Each acts under its own privacy policy.</p>
+
+  <h3 class="font-display text-lg font-bold">Cookies</h3>
+  <p>We use a session cookie to keep you logged in, a security cookie to prevent forged requests, and a cookie for your theme preference. No tracking or advertising cookies.</p>
+
+  <h3 class="font-display text-lg font-bold">Keeping and deleting data</h3>
+  <p>We keep your data while your account exists. You can edit your profile and delete individual posts at any time. Deleting your account from Settings removes your account, posts, replies, likes, bookmarks, follows and messages immediately. Copies may remain in backups for up to 30 days before being purged.</p>
+
+  <h3 class="font-display text-lg font-bold">Children</h3>
+  <p>coroutines is not for anyone under 13. If we learn an account belongs to a child under 13, we'll delete it.</p>
+
+  <h3 class="font-display text-lg font-bold">Changes and contact</h3>
+  <p>If this policy changes we'll update the date at the top. Questions or requests about your data: <a href="mailto:atatat6659@gmail.com" class="text-accent hover:underline">atatat6659@gmail.com</a>. See also our <a href="{% url 'terms' %}" class="text-accent hover:underline">Terms of Service</a>.</p>
+</div>
+{% endblock %}

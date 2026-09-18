@@ -176,6 +176,17 @@ class PostFlowTests(TestCase):
         self.assertContains(response, "@carol")
         self.assertNotContains(response, "@bob")
 
+    def test_edit_post_by_author_only(self):
+        post = Post.objects.create(author=self.alice, content="draft")
+        response = self.client.post(reverse("edit_post", args=[post.pk]), {"content": "final"})
+        self.assertRedirects(response, post.get_absolute_url())
+        post.refresh_from_db()
+        self.assertEqual(post.content, "final")
+        self.assertIsNotNone(post.edited_at)
+        self.assertContains(self.client.get(post.get_absolute_url()), "Edited")
+        other = Post.objects.create(author=self.bob, content="not mine")
+        self.assertEqual(self.client.get(reverse("edit_post", args=[other.pk])).status_code, 404)
+
     def test_detail_redirects_repost_to_original(self):
         post = Post.objects.create(author=self.bob, content="x")
         repost = Post.objects.create(author=self.alice, repost_of=post)

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load feed_extras %}
+{% block title %}Messages / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Messages</div>
+{% for row in rows %}
+<a href="{% url 'conversation' row.other.username %}" class="flex items-center gap-3 border-b border-line px-4 py-3 hover:bg-dim">
+  {% include "partials/avatar.html" with u=row.other %}
+  <div class="min-w-0 flex-1">
+    <div class="flex items-center gap-1 text-sm">
+      <span class="truncate font-bold">{{ row.other.name }}</span>
+      <span class="truncate text-muted">@{{ row.other.username }}</span>
+      <span class="ml-auto whitespace-nowrap text-xs text-muted">{{ row.updated_at|short_since }}</span>
+    </div>
+    <div class="truncate text-sm {% if row.unread %}font-semibold{% else %}text-muted{% endif %}">{{ row.preview|default:"No messages yet" }}</div>
+  </div>
+  {% if row.unread %}<span class="rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">{{ row.unread }}</span>{% endif %}
+</a>
+{% empty %}
+<p class="p-8 text-center text-muted">No conversations yet. Open someone's profile and tap the envelope to message them.</p>
+{% endfor %}
+{% endblock %}

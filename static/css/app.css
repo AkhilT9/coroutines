@@ -83,6 +83,15 @@ body {
   display: none;
 }
 
+#thread:has(.bubble) .thread-empty {
+  display: none;
+}
+
+.bubble-mine a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .errorlist {
   list-style: none;
   margin: 0.25rem 0 0;

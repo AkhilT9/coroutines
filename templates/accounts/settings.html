@@ -17,22 +17,32 @@
   </form>
 </div>
 
-<a href="{% url 'edit_profile' %}" class="flex items-center justify-between border-b border-line p-4 hover:bg-dim">
+{% for url, title, subtitle in rows %}
+<a href="{{ url }}" class="flex items-center justify-between border-b border-line p-4 hover:bg-dim">
   <div>
-    <h3 class="font-display font-semibold">Edit profile</h3>
-    <p class="text-sm text-muted">Name, bio</p>
+    <h3 class="font-display font-semibold">{{ title }}</h3>
+    <p class="text-sm text-muted">{{ subtitle }}</p>
   </div>
   <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
 </a>
+{% endfor %}
 
 <form method="post" action="{% url 'logout' %}" class="border-b border-line p-4">
   {% csrf_token %}
   <button type="submit" class="flex w-full items-center justify-between text-left">
     <span>
-      <span class="block font-display font-semibold text-red-500">Log out</span>
+      <span class="block font-display font-semibold">Log out</span>
       <span class="block text-sm text-muted">@{{ user.username }}</span>
     </span>
     <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
   </button>
 </form>
+
+<a href="{% url 'delete_account' %}" class="flex items-center justify-between border-b border-line p-4 hover:bg-red-500/10">
+  <div>
+    <h3 class="font-display font-semibold text-red-500">Delete account</h3>
+    <p class="text-sm text-muted">Permanently remove your account and everything in it</p>
+  </div>
+  <svg class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+</a>
 {% endblock %}

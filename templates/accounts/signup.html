@@ -6,6 +6,7 @@
   {% csrf_token %}
   {{ form.non_field_errors }}
   {% for field in form %}{% include "partials/form_field.html" %}{% endfor %}
+  <p class="mb-3 text-xs text-muted">By signing up you agree to the <a href="{% url 'terms' %}" class="text-accent hover:underline">Terms of Service</a> and <a href="{% url 'privacy' %}" class="text-accent hover:underline">Privacy Policy</a>.</p>
   <button type="submit" class="mt-2 w-full rounded-full bg-ink py-2.5 font-bold text-base hover:opacity-90">Sign up</button>
 </form>
 <p class="mt-6 text-center text-sm text-muted">Have an account? <a href="{% url 'login' %}" class="text-accent hover:underline">Log in</a></p>

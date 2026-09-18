@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Blocked accounts / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 border-b border-line bg-base/80 px-4 py-3 text-xl font-bold backdrop-blur">Blocked accounts</div>
+{% for block in blocks %}
+<div class="flex items-center gap-3 border-b border-line px-4 py-3">
+  {% include "partials/avatar.html" with u=block.blocked %}
+  <div class="min-w-0 flex-1">
+    <a href="{{ block.blocked.get_absolute_url }}" class="block truncate font-bold hover:underline">{{ block.blocked.name }}</a>
+    <div class="truncate text-sm text-muted">@{{ block.blocked.username }}</div>
+  </div>
+  <form method="post" action="{% url 'block_toggle' block.blocked.username %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="blocked">
+    <button type="submit" class="rounded-full border border-red-500/60 px-4 py-1.5 text-sm font-bold text-red-500 hover:bg-red-500/10">Unblock</button>
+  </form>
+</div>
+{% empty %}
+<p class="p-8 text-center text-muted">You haven't blocked anyone.</p>
+{% endfor %}
+{% endblock %}

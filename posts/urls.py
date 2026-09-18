@@ -16,4 +16,5 @@ urlpatterns = [
     path("p/<int:pk>/like/", views.like_toggle, name="like_toggle"),
     path("p/<int:pk>/repost/", views.repost_toggle, name="repost_toggle"),
     path("p/<int:pk>/delete/", views.delete_post, name="delete_post"),
+    path("p/<int:pk>/edit/", views.edit_post, name="edit_post"),
 ]

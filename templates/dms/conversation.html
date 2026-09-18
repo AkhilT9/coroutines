@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ other.name }} - Messages / coroutines{% endblock %}
+{% block content %}
+<div class="sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-base/80 px-4 py-2 backdrop-blur">
+  <a href="{% url 'inbox' %}" class="rounded-full p-1 hover:bg-surface" title="Back">
+    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+  </a>
+  {% include "partials/avatar.html" with u=other size="h-9 w-9 text-sm" %}
+  <div class="min-w-0">
+    <a href="{{ other.get_absolute_url }}" class="block truncate font-bold hover:underline">{{ other.name }}</a>
+    <div class="truncate text-xs text-muted">@{{ other.username }}</div>
+  </div>
+</div>
+{% if blocked %}
+<p class="p-8 text-center text-muted">You can't message this account.</p>
+{% else %}
+<div id="thread" class="flex min-h-[60vh] flex-col justify-end gap-1.5 p-4">
+  <p class="thread-empty pb-6 text-center text-sm text-muted">Say hi to {{ other.name }}. Only the two of you can see this.</p>
+  {% for m in thread %}{% include "dms/partials/bubble.html" %}{% endfor %}
+</div>
+{% include "dms/partials/poller.html" %}
+<form hx-post="{% url 'dm_send' other.username %}" hx-target="#thread" hx-swap="beforeend"
+      x-data="{ text: '' }" @htmx:after-request="if ($event.detail.successful) text = ''"
+      class="sticky bottom-16 flex gap-2 border-t border-line bg-base p-3 md:bottom-0">
+  <input type="text" name="content" x-model="text" maxlength="1000" placeholder="Start a new message" autocomplete="off"
+         class="min-w-0 flex-1 rounded-full border border-line bg-surface px-4 py-2 text-sm outline-none focus:border-accent">
+  <button type="submit" :disabled="!text.trim()" class="rounded-full bg-accent px-4 py-2 text-sm font-bold text-white hover:bg-accent-hover disabled:opacity-50">Send</button>
+</form>
+<script>
+  window.scrollTo(0, document.body.scrollHeight);
+  document.body.addEventListener("htmx:afterSettle", function () { window.scrollTo(0, document.body.scrollHeight); });
+</script>
+{% endif %}
+{% endblock %}

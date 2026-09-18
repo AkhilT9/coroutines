@@ -1,0 +1,1 @@
+<div id="dm-poll" hx-get="{% url 'dm_updates' other.username %}?since={{ since }}" hx-trigger="every 5s" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}></div>

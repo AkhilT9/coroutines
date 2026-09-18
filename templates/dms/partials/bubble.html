@@ -1,0 +1,4 @@
+{% load feed_extras %}
+<div class="bubble flex {% if m.sender_id == user.id %}justify-end{% else %}justify-start{% endif %}">
+  <div class="max-w-[78%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-[15px] leading-snug {% if m.sender_id == user.id %}bubble-mine rounded-br-sm bg-accent text-white{% else %}rounded-bl-sm bg-surface{% endif %}" title="{{ m.created_at }}">{{ m.content|linkify }}</div>
+</div>

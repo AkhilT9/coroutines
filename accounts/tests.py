@@ -2,10 +2,60 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Follow, User
+from posts.models import Post
+
+from .models import Block, Follow, User
 from .tokens import make_token
 
 PASSWORD = "strong-pass-123"
+
+
+class BlockTests(TestCase):
+    def setUp(self):
+        self.alice = User.objects.create_user("alice", "alice@example.com", PASSWORD)
+        self.bob = User.objects.create_user("bob", "bob@example.com", PASSWORD)
+        self.client.force_login(self.alice)
+
+    def test_block_removes_follows_hides_posts_and_prevents_follow(self):
+        Follow.objects.create(follower=self.alice, following=self.bob)
+        Follow.objects.create(follower=self.bob, following=self.alice)
+        Post.objects.create(author=self.bob, content="post from bob")
+        self.client.post(reverse("block_toggle", args=["bob"]))
+        self.assertTrue(Block.objects.filter(blocker=self.alice, blocked=self.bob).exists())
+        self.assertFalse(Follow.objects.exists())
+        self.assertNotContains(self.client.get(reverse("explore")), "post from bob")
+        self.assertContains(self.client.get(reverse("profile", args=["bob"])), "You blocked @bob")
+        self.assertEqual(self.client.post(reverse("follow_toggle", args=["bob"])).status_code, 403)
+        self.client.post(reverse("block_toggle", args=["bob"]))
+        self.assertFalse(Block.objects.exists())
+
+    def test_blocked_user_sees_blocked_message(self):
+        Block.objects.create(blocker=self.bob, blocked=self.alice)
+        self.assertContains(self.client.get(reverse("profile", args=["bob"])), "has blocked you")
+        self.assertContains(self.client.get(reverse("blocked_list")), "blocked anyone")
+
+
+class DeleteAccountTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("alice", "alice@example.com", PASSWORD)
+        Post.objects.create(author=self.user, content="bye")
+        self.client.force_login(self.user)
+
+    def test_wrong_password_keeps_account(self):
+        self.client.post(reverse("delete_account"), {"password": "nope"})
+        self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+
+    def test_correct_password_deletes_account_and_content(self):
+        response = self.client.post(reverse("delete_account"), {"password": PASSWORD})
+        self.assertRedirects(response, reverse("explore"))
+        self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
+        self.assertFalse(Post.objects.exists())
+
+
+class LegalPagesTests(TestCase):
+    def test_pages_render(self):
+        for name in ("terms", "privacy"):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200)
 
 
 class SignupTests(TestCase):

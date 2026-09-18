@@ -1,18 +1,20 @@
 from urllib.parse import urlparse
 
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseBadRequest
+from django.db.models import Q
+from django.http import HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from posts.feed import base_queryset, is_htmx, paginate_feed
 
 from .emails import send_verification_email
 from .forms import LoginForm, ProfileForm, SignupForm
-from .models import Follow, User
+from .models import Block, Follow, User, blocked_user_ids
 from .tokens import read_token
 
 
@@ -64,8 +66,15 @@ def resend_verification(request):
 def profile(request, username):
     profile_user = get_object_or_404(User, username=username.lower())
     tab = "replies" if request.GET.get("tab") == "replies" else "posts"
-    queryset = base_queryset().filter(author=profile_user, parent__isnull=(tab == "posts"))
-    page = paginate_feed(request, queryset)
+    viewer_blocked = blocked_by = False
+    if request.user.is_authenticated:
+        viewer_blocked = Block.objects.filter(blocker=request.user, blocked=profile_user).exists()
+        blocked_by = Block.objects.filter(blocker=profile_user, blocked=request.user).exists()
+    if viewer_blocked or blocked_by:
+        page = {"items": [], "next_url": None}
+    else:
+        queryset = base_queryset().filter(author=profile_user, parent__isnull=(tab == "posts"))
+        page = paginate_feed(request, queryset)
     if is_htmx(request):
         return render(request, "partials/feed_page.html", page)
     is_following = request.user.is_authenticated and Follow.objects.filter(
@@ -79,6 +88,8 @@ def profile(request, username):
         "followers_count": profile_user.follower_set.count(),
         "following_count": profile_user.following_set.count(),
         "is_following": is_following,
+        "viewer_blocked": viewer_blocked,
+        "blocked_by": blocked_by,
     }
     return render(request, "accounts/profile.html", context)
 
@@ -89,6 +100,8 @@ def follow_toggle(request, username):
     target = get_object_or_404(User, username=username.lower())
     if target == request.user:
         return HttpResponseBadRequest("You can't follow yourself.")
+    if target.pk in blocked_user_ids(request.user):
+        return HttpResponseForbidden("You can't follow this account.")
     follow, created = Follow.objects.get_or_create(follower=request.user, following=target)
     if not created:
         follow.delete()
@@ -129,8 +142,54 @@ def following(request, username):
 
 
 @login_required
+@require_POST
+def block_toggle(request, username):
+    target = get_object_or_404(User, username=username.lower())
+    if target == request.user:
+        return HttpResponseBadRequest("You can't block yourself.")
+    block, created = Block.objects.get_or_create(blocker=request.user, blocked=target)
+    if created:
+        Follow.objects.filter(
+            Q(follower=request.user, following=target) | Q(follower=target, following=request.user)
+        ).delete()
+        messages.success(request, f"Blocked @{target.username}.")
+    else:
+        block.delete()
+        messages.success(request, f"Unblocked @{target.username}.")
+    if request.POST.get("next") == "blocked":
+        return redirect("blocked_list")
+    return redirect(target.get_absolute_url())
+
+
+@login_required
+def blocked_list(request):
+    blocks = Block.objects.filter(blocker=request.user).select_related("blocked").order_by("-id")
+    return render(request, "accounts/blocked_list.html", {"blocks": blocks})
+
+
+@login_required
+def delete_account(request):
+    if request.method == "POST":
+        if request.user.check_password(request.POST.get("password", "")):
+            user = request.user
+            logout(request)
+            user.delete()
+            messages.success(request, "Your account has been deleted.")
+            return redirect("explore")
+        messages.error(request, "That password is incorrect.")
+    return render(request, "accounts/delete_account.html")
+
+
+@login_required
 def settings_home(request):
-    return render(request, "accounts/settings.html", {"theme_choices": User.Theme.choices})
+    rows = [
+        (reverse("edit_profile"), "Edit profile", "Name, bio"),
+        (reverse("bookmarks"), "Bookmarks", "Posts you saved"),
+        (reverse("blocked_list"), "Blocked accounts", "People you've blocked"),
+        (reverse("terms"), "Terms of Service", "The rules for using coroutines"),
+        (reverse("privacy"), "Privacy Policy", "What we collect and why"),
+    ]
+    return render(request, "accounts/settings.html", {"theme_choices": User.Theme.choices, "rows": rows})
 
 
 @login_required

@@ -8,11 +8,12 @@ from django.db.models import F, Q
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from accounts.models import Follow, User
 
-from .feed import attach_viewer_state, base_queryset, is_htmx, paginate_feed
+from .feed import attach_viewer_state, base_queryset, exclude_blocked, is_htmx, paginate_feed
 from .forms import PostForm
 from .models import Bookmark, Like, Post
 
@@ -25,11 +26,12 @@ def _original(post):
 
 def _home_queryset(user):
     following_ids = Follow.objects.filter(follower=user).values_list("following_id", flat=True)
-    return (
+    queryset = (
         base_queryset()
         .filter(parent__isnull=True)
         .filter(Q(author_id__in=following_ids) | Q(author=user))
     )
+    return exclude_blocked(queryset, user)
 
 
 def _latest_id(items):
@@ -46,7 +48,7 @@ def home(request):
 
 
 def explore(request):
-    page = paginate_feed(request, base_queryset().filter(parent__isnull=True))
+    page = paginate_feed(request, exclude_blocked(base_queryset().filter(parent__isnull=True), request.user))
     if is_htmx(request):
         return render(request, "partials/feed_page.html", page)
     return render(request, "posts/explore.html", {**page, "since": _latest_id(page["items"])})
@@ -57,7 +59,7 @@ def tag(request, name):
         raise Http404
     pattern = rf"(^|[^\w])#{re.escape(name)}($|[^\w])"
     queryset = base_queryset().filter(repost_of__isnull=True, content__iregex=pattern)
-    page = paginate_feed(request, queryset)
+    page = paginate_feed(request, exclude_blocked(queryset, request.user))
     if is_htmx(request):
         return render(request, "partials/feed_page.html", page)
     return render(request, "posts/tag.html", {**page, "name": name})
@@ -91,7 +93,7 @@ def search(request):
             )
         else:
             posts = posts.filter(content__icontains=q)
-        page = paginate_feed(request, posts)
+        page = paginate_feed(request, exclude_blocked(posts, request.user))
     if is_htmx(request):
         return render(request, "partials/feed_page.html", page)
     return render(request, "posts/search.html", {**page, "q": q, "people": people})
@@ -135,7 +137,7 @@ def feed_updates(request):
         swap, singular, plural = "beforeend", "reply", "replies"
     else:
         raise Http404
-    queryset = queryset.filter(id__gt=since)
+    queryset = exclude_blocked(queryset.filter(id__gt=since), request.user)
     context = {"scope": scope, "post_id": post_id, "since": since, "swap": swap}
     if request.GET.get("show"):
         items = list(queryset[:50])
@@ -179,13 +181,25 @@ def post_detail(request, pk):
         ancestors.append(ancestor)
         parent_id = ancestor.parent_id
     ancestors.reverse()
-    replies = list(base_queryset().filter(parent=post).order_by("id"))
+    replies = list(exclude_blocked(base_queryset().filter(parent=post), request.user).order_by("id"))
     attach_viewer_state([*ancestors, post, *replies], request.user)
     return render(
         request,
         "posts/detail.html",
         {"post": post, "ancestors": ancestors, "replies": replies, "since": _latest_id(replies)},
     )
+
+
+@login_required
+def edit_post(request, pk):
+    post = get_object_or_404(Post, pk=pk, author=request.user, repost_of__isnull=True)
+    form = PostForm(request.POST or None, instance=post)
+    if request.method == "POST" and form.is_valid():
+        post = form.save(commit=False)
+        post.edited_at = timezone.now()
+        post.save(update_fields=["content", "edited_at"])
+        return redirect(post.get_absolute_url())
+    return render(request, "posts/edit.html", {"form": form, "post": post})
 
 
 @login_required

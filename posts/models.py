@@ -10,6 +10,7 @@ class Post(models.Model):
     parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies")
     repost_of = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE, related_name="reposts")
     created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
     like_count = models.PositiveIntegerField(default=0)
     reply_count = models.PositiveIntegerField(default=0)
     repost_count = models.PositiveIntegerField(default=0)
