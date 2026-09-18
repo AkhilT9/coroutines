@@ -1,3 +1,4 @@
+from django.template.loader import render_to_string
 from django.test import TestCase
 from django.urls import reverse
 
@@ -41,6 +42,17 @@ class DmTests(TestCase):
         Block.objects.create(blocker=self.bob, blocked=self.alice)
         self.assertEqual(self.client.post(reverse("dm_send", args=["bob"]), {"content": "hi"}).status_code, 403)
         self.assertContains(self.client.get(reverse("conversation", args=["bob"])), "message this account")
+
+    def test_bubbles_align_by_sender(self):
+        conv = Conversation.between(self.alice, self.bob)
+        mine = Message.objects.create(conversation=conv, sender=self.alice, content="from alice")
+        theirs = Message.objects.create(conversation=conv, sender=self.bob, content="from bob")
+        mine_html = render_to_string("dms/partials/bubble.html", {"m": mine, "user": self.alice})
+        theirs_html = render_to_string("dms/partials/bubble.html", {"m": theirs, "user": self.alice})
+        self.assertIn("justify-end", mine_html)
+        self.assertIn("You ·", mine_html)
+        self.assertIn("justify-start", theirs_html)
+        self.assertNotIn("justify-end", theirs_html)
 
     def test_cannot_message_self(self):
         self.assertEqual(self.client.get(reverse("conversation", args=["alice"])).status_code, 404)

@@ -1,7 +1,9 @@
 {% load feed_extras %}
-<div class="bubble flex {% if m.sender_id == user.id %}justify-end{% else %}justify-start{% endif %}">
-  <div class="max-w-[78%] rounded-2xl px-3.5 py-2 {% if m.sender_id == user.id %}bubble-mine rounded-br-sm bg-accent text-white{% else %}rounded-bl-sm bg-surface{% endif %}">
+<div class="bubble flex items-end gap-2 {% if m.sender_id == user.id %}justify-end{% else %}justify-start{% endif %}">
+  {% if m.sender_id != user.id %}{% include "partials/avatar.html" with u=m.sender size="h-7 w-7 text-xs" %}{% endif %}
+  <div class="max-w-[75%] rounded-2xl px-3.5 py-2 {% if m.sender_id == user.id %}bubble-mine rounded-br-sm bg-accent text-white{% else %}rounded-bl-sm bg-surface{% endif %}">
     <div class="whitespace-pre-wrap break-words text-[15px] leading-snug">{{ m.content|linkify }}</div>
-    <div class="mt-0.5 text-right text-[10px] leading-none {% if m.sender_id == user.id %}text-white/70{% else %}text-muted{% endif %}" title="{{ m.created_at }}">{{ m.created_at|date:"g:i A" }}</div>
+    <div class="mt-0.5 text-right text-[10px] leading-none {% if m.sender_id == user.id %}text-white/70{% else %}text-muted{% endif %}" title="{{ m.created_at }}">{% if m.sender_id == user.id %}You · {% endif %}{{ m.created_at|date:"g:i A" }}</div>
   </div>
+  {% if m.sender_id == user.id %}{% include "partials/avatar.html" with u=m.sender plain=True size="h-7 w-7 text-xs" %}{% endif %}
 </div>
