@@ -1,4 +1,7 @@
 {% load feed_extras %}
 <div class="bubble flex {% if m.sender_id == user.id %}justify-end{% else %}justify-start{% endif %}">
-  <div class="max-w-[78%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-[15px] leading-snug {% if m.sender_id == user.id %}bubble-mine rounded-br-sm bg-accent text-white{% else %}rounded-bl-sm bg-surface{% endif %}" title="{{ m.created_at }}">{{ m.content|linkify }}</div>
+  <div class="max-w-[78%] rounded-2xl px-3.5 py-2 {% if m.sender_id == user.id %}bubble-mine rounded-br-sm bg-accent text-white{% else %}rounded-bl-sm bg-surface{% endif %}">
+    <div class="whitespace-pre-wrap break-words text-[15px] leading-snug">{{ m.content|linkify }}</div>
+    <div class="mt-0.5 text-right text-[10px] leading-none {% if m.sender_id == user.id %}text-white/70{% else %}text-muted{% endif %}" title="{{ m.created_at }}">{{ m.created_at|date:"g:i A" }}</div>
+  </div>
 </div>
