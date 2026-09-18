@@ -1,0 +1,6 @@
+<div id="feed-updates" hx-get="{% url 'feed_updates' %}?scope={{ scope }}&post={{ post_id }}&since={{ since }}" hx-trigger="every 15s" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if count %}
+  <button type="button" hx-get="{% url 'feed_updates' %}?scope={{ scope }}&post={{ post_id }}&since={{ since }}&show=1" hx-target="#feed" hx-swap="{{ swap }}"
+          class="w-full border-b border-line py-3 text-center text-sm font-bold text-accent hover:bg-dim">{{ label }}</button>
+  {% endif %}
+</div>

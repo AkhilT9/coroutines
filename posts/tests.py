@@ -97,6 +97,28 @@ class PostFlowTests(TestCase):
         for text in ("root post", "child post", "grandchild post"):
             self.assertContains(response, text)
 
+    def test_feed_updates_counts_then_shows_new_posts(self):
+        Follow.objects.create(follower=self.alice, following=self.bob)
+        first = Post.objects.create(author=self.bob, content="old post")
+        url = reverse("feed_updates")
+        self.assertNotContains(self.client.get(url, {"scope": "home", "since": first.pk}), "Show ")
+        Post.objects.create(author=self.bob, content="brand new post")
+        self.assertContains(self.client.get(url, {"scope": "home", "since": first.pk}), "Show 1 new post")
+        response = self.client.get(url, {"scope": "home", "since": first.pk, "show": "1"})
+        self.assertContains(response, "brand new post")
+        self.assertContains(response, 'hx-swap-oob="true"')
+
+    def test_feed_updates_thread_scope_counts_replies(self):
+        root = Post.objects.create(author=self.bob, content="root")
+        Post.objects.create(author=self.alice, parent=root, content="a reply")
+        Post.objects.create(author=self.bob, parent=root, content="another reply")
+        response = self.client.get(reverse("feed_updates"), {"scope": "thread", "post": root.pk, "since": 0})
+        self.assertContains(response, "Show 2 new replies")
+
+    def test_feed_updates_home_requires_login(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse("feed_updates"), {"scope": "home"}).status_code, 404)
+
     def test_detail_redirects_repost_to_original(self):
         post = Post.objects.create(author=self.bob, content="x")
         repost = Post.objects.create(author=self.alice, repost_of=post)

@@ -6,6 +6,7 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("explore/", views.explore, name="explore"),
     path("compose/", views.compose, name="compose"),
+    path("feed/updates/", views.feed_updates, name="feed_updates"),
     path("p/<int:pk>/", views.post_detail, name="post_detail"),
     path("p/<int:pk>/reply/", views.reply, name="reply"),
     path("p/<int:pk>/like/", views.like_toggle, name="like_toggle"),

@@ -65,4 +65,5 @@
 <div id="feed">
   {% for item in replies %}{% include "partials/post.html" %}{% endfor %}
 </div>
+{% include "partials/feed_updates.html" with scope="thread" post_id=post.id since=since swap="beforeend" %}
 {% endblock %}
